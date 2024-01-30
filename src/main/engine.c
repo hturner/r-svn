@@ -2451,9 +2451,9 @@ void GEPretty(double *lo, double *up, int *ndiv)
  *	Post: x1 <= y1 := lo < up =: y2 <= x2;	ndiv >= 1
  */
     if(*ndiv <= 0)
-	error(_("invalid axis extents [GEPretty(.,.,n=%d)"), *ndiv);
+	error(_("invalid axis extents [GEPretty(.,.,n=%d)]"), *ndiv);
     if(!R_FINITE(*lo) || !R_FINITE(*up)) // also catch NA etc
-	error(_("non-finite axis extents [GEPretty(%g,%g, n=%d)]"), *lo, *up, *ndiv);
+	error(_("non-finite axis extents [GEPretty(%g,%g,n=%d)]"), *lo, *up, *ndiv);
 
     // For *finite* boundaries, now allow (*up - *lo) = +/- inf  as R_pretty() now does
     double ns = *lo, nu = *up;
