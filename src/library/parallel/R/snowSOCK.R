@@ -206,7 +206,7 @@ makePSOCKcluster <- function(names, ...)
                 ## no point waiting for them much longer.
                 failed <- length(cl) - ready
                 msg <- sprintf(ngettext(failed,
-                           "Cluster setup failed. %d worker of %d failed to connect.",
+                           "Cluster setup failed. %d worker out of %d failed to connect.",
                            "Cluster setup failed. %d of %d workers failed to connect."),
                                failed, length(cl))
                 stop(msg)
