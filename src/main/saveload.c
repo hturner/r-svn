@@ -334,7 +334,7 @@ static int XdrInInteger(FILE * fp, SaveLoadData *d)
     int i;
     if (!xdr_int(&d->xdrs, &i)) {
 	xdr_destroy(&d->xdrs);
-	error(_("a I read error occurred"));
+	error(_("an I read error occurred"));
     }
     return i;
 }
@@ -344,7 +344,7 @@ static double XdrInReal(FILE * fp, SaveLoadData *d)
     double x;
     if (!xdr_double(&d->xdrs, &x)) {
 	xdr_destroy(&d->xdrs);
-	error(_("a R read error occurred"));
+	error(_("an R read error occurred"));
     }
     return x;
 }
@@ -364,7 +364,7 @@ static char *XdrInString(FILE *fp, SaveLoadData *d)
     char *bufp = d->buffer.data;
     if (!xdr_string(&d->xdrs, &bufp, (unsigned int)d->buffer.bufsize)) {
 	xdr_destroy(&d->xdrs);
-	error(_("a S read error occurred"));
+	error(_("an S read error occurred"));
     }
     return d->buffer.data;
 }
