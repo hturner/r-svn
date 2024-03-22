@@ -17,7 +17,7 @@
 #  https://www.R-project.org/Licenses/
 
 askYesNo <- function(msg, default = TRUE, 
-                     prompts = getOption("askYesNo", gettext(c("Yes", "No", "Cancel"))),
+                     prompts = getOption("askYesNo", gettext(c("Yes", "No", "Maybe"))),
 		     ...) {
     if (is.character(prompts) && length(prompts) == 1)
 	prompts <- strsplit(prompts, "/")[[1]]
