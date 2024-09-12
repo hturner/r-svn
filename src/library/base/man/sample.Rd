@@ -3,16 +3,23 @@
 % Copyright 1995-2022 R Core Team
 % Distributed under GPL 2 or later
 
+%% TO DO: WRITE sample.pps() and then DOCUMENT it!
+%% probability proportional to size
+%% Make an example showing that 
+%% Document prob_methods() arg...
+
+
 \name{sample}
 \alias{sample}
 \alias{sample.int}
+\alias{sample.pps}
 \title{Random Samples and Permutations}
 \description{
   \code{sample} takes a sample of the specified size from the elements
   of \code{x} using either with or without replacement.
 }
 \usage{
-sample(x, size, replace = FALSE, prob = NULL)
+sample(x, size, replace = FALSE, prob = NULL, prob_method = c("sequential", "marginal", "poisson"))
 
 sample.int(n, size = n, replace = FALSE, prob = NULL,
            useHash = (n > 1e+07 && !replace && is.null(prob) && size <= n/2))
@@ -61,12 +68,7 @@ sample.int(n, size = n, replace = FALSE, prob = NULL,
   If \code{replace} is true, Walker's alias method (Ripley, 1987) is
   used when there are more than 200 reasonably probable values: this
   gives results incompatible with those from \R < 2.2.0.
-
-  If \code{replace} is false, these probabilities are applied
-  sequentially, that is the probability of choosing the next item is
-  proportional to the weights amongst the remaining items.  The number
-  of nonzero weights must be at least \code{size} in this case.
-
+  
   \code{sample.int} is a bare interface in which both \code{n} and
   \code{size} must be supplied as integers.
 
@@ -74,6 +76,33 @@ sample.int(n, size = n, replace = FALSE, prob = NULL,
   type \code{integer}, up to the largest representable integer in type
   \code{double}.  Only uniform sampling is supported.  Two
   random numbers are used to ensure uniform sampling of large integers.
+  
+  If \code{replace} is false and \code{prob} is supplied there are three
+  options, controlled by \code{method}. The number of nonzero weights
+  must be at least \code{size} in this case and the weights should sum
+  to the desired sample size. 
+ 
+  In sequential sampling, the probability of choosing the next item is
+  proportional to the weights amongst the remaining items.  The number
+  of nonzero weights must be at least \code{size} in this case.
+  
+  For marginal and sequential sampling, the \code{prob} arguement is the
+  sample probability and does not get rescaled.
+
+  All three of the methods have disadvantages. The default,
+  compatible with R < 4.4.0 is sequential sampling also know as the Yat, that
+  is,  the probability of choosing the next item is proportional to the
+  weights amongst the remaining items. Sequential sampling is fast,
+  but \emph{the probability of being sampled is not equal or
+  proportional to \code{prob}}. Using \code{"marginal"}
+  draws a sample so that the inclusion probabilities are the values of
+  \code{prob} and by default \code{size = sum(prob)}. It uses the Brewer 
+  procedures, Algorithm 6.10 from Tille (2006). This is much slower for large 
+  \code{n} than the other methods.  Finally, \code{"poisson"} does Poisson
+  sampling, where the inclusion probabilities are the values of
+  \code{prob} but the \emph{sample size is random} with mean \code{size}
+  rather than being fixed at \code{size}; it is most useful when
+  \code{size} is large and the variability is thus relatively small.
 }
 
 \value{
