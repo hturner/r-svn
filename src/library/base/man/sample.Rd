@@ -86,7 +86,7 @@ sample.int(n, size = n, replace = FALSE, prob = NULL,
   proportional to the weights amongst the remaining items.  The number
   of nonzero weights must be at least \code{size} in this case.
   
-  For marginal and sequential sampling, the \code{prob} arguement is the
+  For marginal and sequential sampling, the \code{prob} argument is the
   sample probability and does not get rescaled.
 
   All three of the methods have disadvantages. The default,
