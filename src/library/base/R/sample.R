@@ -16,24 +16,45 @@
 #  A copy of the GNU General Public License is available at
 #  https://www.R-project.org/Licenses/
 
-sample <- function(x, size, replace = FALSE, prob = NULL)
+sample <- function(x, size, replace = FALSE, prob = NULL,
+                   prob_method = c("sequential", "marginal", "poisson"))
 {
     if(length(x) == 1L && is.numeric(x) && is.finite(x) && x >= 1) {
 	if(missing(size)) size <- x
-	sample.int(x, size, replace, prob)
+	sample.int(x, size, replace, prob, prob_method)
     } else {
 	if(missing(size)) size <- length(x)
-	x[sample.int(length(x), size, replace, prob)]
+	x[sample.int(length(x), size, replace, prob, prob_method)]
     }
 }
 
 sample.int  <- function(n, size = n, replace = FALSE, prob = NULL,
+                        prob_method = c("sequential", "marginal", "poisson"),
                         useHash = (n > 1e7 && !replace && is.null(prob) && size <= n/2))
 {
-    stopifnot(length(n) == 1L) # rest of the checks are at C level.
-    if (useHash) {
-        ## will work with size > n/2 but may be slow.
-        stopifnot(is.null(prob), !replace)
-        .Internal(sample2(n, size))
-    } else .Internal(sample(n, size, replace, prob))
+  if (replace || is.null(prob)) {
+    if (is.null(size)) {
+      size <- n
+    }
+  } else {
+    if (is.null(size))
+      size <- sum(prob)
+  }
+  stopifnot(length(n) == 1L) # rest of the checks are at C level.
+  if (useHash) {
+    ## will work with size > n/2 but may be slow.
+    stopifnot(is.null(prob), !replace)
+    .Internal(sample2(n, size))
+  }
+  else if (!is.null(prob) && !replace) {
+    if (length(prob) != n)
+      stop("incorrect number of probabilities")
+    method <- match.arg(method)
+    switch(method,
+           sequential = .Internal(sample(n, size, replace, prob)),
+           marginal = sample.pps(n, size, prob),
+           poisson = sample(seq.int(1, n)[runif(n) <= prob * size/sum(prob)]))
+  } else {
+    .Internal(sample(n, size, replace, prob))
+  }
 }
