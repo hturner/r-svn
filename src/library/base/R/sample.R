@@ -49,8 +49,8 @@ sample.int  <- function(n, size = n, replace = FALSE, prob = NULL,
   else if (!is.null(prob) && !replace) {
     if (length(prob) != n)
       stop("incorrect number of probabilities")
-    method <- match.arg(method)
-    switch(method,
+    prob_method <- match.arg(prob_method)
+    switch(prob_method,
            sequential = .Internal(sample(n, size, replace, prob)),
            marginal = sample.pps(n, size, prob),
            poisson = sample(seq.int(1, n)[runif(n) <= prob * size/sum(prob)]))
@@ -79,7 +79,7 @@ up_brewer <- function(pik, eps = sqrt(.Machine$double.eps)) {
   r
 }
 
-sample_pps <- function(n, size, prob, tolerance = sqrt(.Machine$double.eps)) {
+sample.pps <- function(n, size, prob, tolerance = sqrt(.Machine$double.eps)) {
   s <- sum(prob)
   sums_to_one <- isTRUE(all.equal(s, 1, tolerance = tolerance))
   sums_to_int <- isTRUE(all.equal(s, round(s), tolerance = tolerance))

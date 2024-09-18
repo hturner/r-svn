@@ -637,7 +637,7 @@ attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
 	SEXP pik, eps;
     checkArity(op, args);
 	pik = CAR(args);
-    eps = CDR(args);
+    eps = CADR(args);
     int i, l, l1;
     double *pik_ptr = REAL(pik);
     double epsilon = REAL(eps)[0];
