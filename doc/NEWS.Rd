@@ -54,10 +54,14 @@
 
       \item Package \pkg{tools} now exports functions
       \code{CRAN_current_db()}, \code{CRAN_aliases_db()},
-      \code{CRAN_rdxrefs_db()}, and \code{CRAN_archive_db()}.
+      \code{CRAN_rdxrefs_db()}, \code{CRAN_archive_db()}, and
+      \code{CRAN_authors_db()}.
 
       \item Package \pkg{tools} now exports functions
       \code{R()} and \code{parse_URI_reference()}.
+
+      \item Package \pkg{tools} now exports functions
+      \code{base_aliases_db()} and \code{base_rdxrefs_db()}.
 
       \item It is now possible to set the background color for row and
       column names in the data editor on Windows (\command{Rgui}).
@@ -73,6 +77,16 @@
       \item \code{findInterval()} gets new options \code{checkSorted} and
       \code{checkNA} which allow to skip relatively costly checks; related
       to \PR{16567}.
+
+      \item \code{pnorm(x)} underflows more gracefully.
+
+      \item \code{get(nam, env)} now signals a \emph{classed} error,
+      \code{"getMissingError"}, as \dQuote{subclass} of
+      \code{"missingArgError"}  where the latter is used also in similar
+      situations, e.g., \code{f <- function(x) exp(x); try(f())} .
+
+      \item The set operations now avoid the \code{as.vector()}
+      transformation for same-kind apparently vector-like operands.
     }
   }
 
@@ -83,6 +97,9 @@
 
       \item Building the HTML (and Info) versions of the R manuals now
       requires \command{texi2any} from \I{Texinfo} 6.1 or later.
+
+      \item Failures in building the manuals under \file{doc} now abort
+      the installation, removing any file which caused the failure.
     }
   }
 
@@ -200,6 +217,9 @@
       of \code{PI}, \code{Calloc}, \code{Realloc} and \code{Free}: use
       \code{M_PI}, \code{R_Calloc}, \code{R_Realloc} or \code{R_Free}
       instead.
+
+      \item The deprecated S-compatibility macros \code{F77_COM} and
+      \code{F77_COMDECL} have been removed from header \file{R_ext/RS.h}.
     }
   }
 
@@ -227,10 +247,13 @@
       method for data frames, and also bug \PR{18745}.
       \I{Relatedly}, the \code{format()} method gets an option \code{cut.names}.
 
-      \item \code{stem()} correctly formats also in cases where rounding
-      up, e.g., from 9.96 to 10 needs more digits; thanks to
-      \I{Ella Kaye} and \I{Kelly Bodwin}, fixing \PR{8934} during
-      \sQuote{\I{R Dev Day}} at \I{useR!2024}.
+      \item \code{stem()} formats correctly also in cases where rounding
+      up, e.g., from 9.96 to 10 needs more digits; thanks to \I{Ella
+      Kaye} and \I{Kelly Bodwin}, fixing \PR{8934} during \sQuote{\I{R
+      Dev Day}} at \I{useR!2024}.
+
+      Additionally, \code{stem(x)} now works normally also when
+      \code{length(x) == 1}.
 
       \item \pkg{tools}' \code{toTitleCase()} now works better, fixing
       \PR{18674}, thanks to \I{Shannon Pileggi}, \I{Sarah Zeller},
@@ -244,11 +267,26 @@
       \I{Ekaterina Akimova}, \I{Hanne Oberman}, \I{Abhishek Ulayil},
       and \I{Lionel Henry} at the \sQuote{\I{R Dev Day}}, thus fixing
       \PR{15027}.
+
+      \item \code{Sys.setLanguage()} now works in an \command{LC_ALL=C R} session
+      on some platforms, warns about \emph{some} failures to change the
+      language and gets an option related to these warning messages.
+
+      \item Printing \code{ls.str()} now shows \code{"<missing>"} even when
+      \R's language setting is not English.
     }
   }
 }
 
 \section{\Rlogo CHANGES IN R 4.4.1 patched}{
+  \subsection{C-LEVEL FACILITIES}{
+    \itemize{
+      \item The S-compatibility macros \code{F77_COM} and
+      \code{F77_COMDECL} defined in header \file{R_ext/RS.h} are
+      deprecated and will be removed shortly.  We could find no record
+      of their use.
+    }
+  }
   \subsection{BUG FIXES}{
     \itemize{
       \item \I{Mathlib} function \code{lgammacor(x)} no longer warns about

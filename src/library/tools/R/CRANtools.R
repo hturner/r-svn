@@ -260,6 +260,11 @@ function()
     read_CRAN_object(CRAN_baseurl_for_src_area(),
                      "src/contrib/Meta/archive.rds")
 
+CRAN_authors_db <-
+function()
+    read_CRAN_object(CRAN_baseurl_for_src_area(),
+                     "src/contrib/Meta/authors.rds")
+
 CRAN_current_db <-
 function()
     read_CRAN_object(CRAN_baseurl_for_src_area(),
@@ -376,12 +381,12 @@ function(mirrors, db = NULL, collapse = TRUE)
     addresses <- gsub("[[:space:]]*#[[:space:]]*", "@", addresses)
     to <- unique(unlist(strsplit(addresses,
                                  "[[:space:]]*,[[:space:]]*")))
-    head <- list("To" = to,
-                 "CC" = "CRAN@R-project.org",
+    head <- list("To" = "CRAN@R-project.org",
+                 "Bcc" = to,
                  "Subject" = "CRAN mirrors maintained by you",
                  "Reply-To" = "CRAN@R-project.org")
     if(collapse) {
-        head$To <- paste(head$To, collapse = ",\n    ")
+        head$Bcc <- paste(head$Bcc, collapse = ",\n    ")
         head <- sprintf("%s: %s", names(head), unlist(head))
     }
     len <- length(addresses)
@@ -558,12 +563,12 @@ function(packages, db = NULL, collapse = TRUE)
     ind <- match(packages, db[, "Package"])
     addresses <- db[ind, "Address"]
     to <- sort(unique(addresses))
-    head <- list("To" = to,
-                 "CC" = "CRAN@R-project.org",
+    head <- list("To" = "CRAN@R-project.org",
+                 "Bcc" = to,
                  "Subject" = "CRAN packages maintained by you",
                  "Reply-To" = "CRAN@R-project.org")
     if(collapse) {
-        head$To <- paste(head$To, collapse = ",\n    ")
+        head$Bcc <- paste(head$Bcc, collapse = ",\n    ")
         head <- sprintf("%s: %s", names(head), unlist(head))
     }
     lst <- split(db[ind, "Package"], db[ind, "Maintainer"])

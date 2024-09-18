@@ -483,7 +483,7 @@ Auto-generated package citation information takes advantage of this
 specification. The @samp{Author} and @samp{Maintainer} fields are
 auto-generated from it if needed when building@footnote{at least if this
 is done in a locale which matches the package encoding.}  or installing.
-Note that for CRAN submissions, providing @samp{Authors@R} is required,
+Note that for CRAN submissions, providing @samp{Authors@@R} is required,
 and providing @abbr{ORCID} identifiers (see @url{https://orcid.org/})
 where possible is strongly encouraged.
 
@@ -1720,8 +1720,8 @@ HTTP server and by client.  There should be no space in the host part of
 an @samp{http://} URL, and spaces in the remainder should be encoded,
 with each space replaced by @samp{%20}.
 
-Other characters may benefit from being encoded: see the help on
-@code{URLencode()}.
+Reserved characters should be encoded unless used in their reserved
+sense: see the help on @code{URLencode()}.
 
 The canonical URL for a @acronym{CRAN} package is
 @example
@@ -4913,7 +4913,9 @@ SystemRequirements: GNU make
 and ensure that you use the value of environment variable @env{MAKE}
 (and not just @command{make}) in your scripts.  (On some platforms GNU
 make is available under a name such as @command{gmake}, and there
-@code{SystemRequirements} is used to set @env{MAKE}.)
+@code{SystemRequirements} is used to set @env{MAKE}.)  Your
+@code{configure} script (or similar) does need to check that the
+executable pointed to by @env{MAKE} is indeed GNU make.
 
 If you only need GNU make for parts of the package which are rarely
 needed (for example to create bibliography files under
@@ -6077,17 +6079,17 @@ conflicts with @code{std::make_unique} from C++14 and @code{std::byte},
 @item
 In C++ code
 @example
-using namesapace std;
+using namespace std;
 @end example
 @noindent
 is not good practice, and has caused platform-dependent errors if
 included before headers, especially system headers (which may be
 included by other headers). The best practice is to use explicit
 @code{std::} prefixes for all functions declared by the C++ standard to
-be in that namespace.  It is an error to use @code{using namesapace
+be in that namespace.  It is an error to use @code{using namespace
 std} before including any C++ headers, and some recent compilers will
 warn if this is done.
-@c Both LLVM and Apple clang do.
+@c LLVM and Apple clang and Intel icpx do.
 
 @item
 @c including @I{LLVM} clang as from 4.0.0
@@ -12425,7 +12427,7 @@ unprotected.
 @apifun R_ReleaseObject
 There is another way to avoid the effects of garbage collection: a call
 to @code{R_PreserveObject} adds an object to an internal list of objects
-not to be collects, and a subsequent call to @code{R_ReleaseObject}
+not to be collected, and a subsequent call to @code{R_ReleaseObject}
 removes it from that list.  This provides a way for objects which are
 not returned as part of @R{} objects to be protected across calls to
 compiled code: on the other hand it becomes the user's responsibility to
@@ -14367,8 +14369,8 @@ Weak references are used to allow the programmer to maintain information
 on entities without preventing the garbage collection of the entities
 once they become unreachable.
 
-A weak reference contains a key and a value.  The value is reachable is
-if it either reachable directly or @emph{via} weak references with reachable
+A weak reference contains a key and a value.  The value is reachable
+if it is either reachable directly or @emph{via} weak references with reachable
 keys.  Once a value is determined to be unreachable during garbage
 collection, the key and value are set to @code{R_NilValue} and the
 finalizer will be run later in the garbage collection.
@@ -15351,13 +15353,15 @@ to define a function in C to be called from Fortran
 to declare a Fortran routine in C before use
 @item F77_CALL(@var{name})
 to call a Fortran routine from C
-@item F77_COMDECL(@var{name})
-to declare a Fortran common block in C
-@item F77_COM(@var{name})
-to access a Fortran common block from C
+@c Never used in R nor current packages
+@c Deprecated in R 4.4.2, removed in R 4.5.0.
+@c @item F77_COMDECL(@var{name})
+@c to declare a Fortran common block in C
+@c @item F77_COM(@var{name})
+@c to access a Fortran common block from C
 @end table
 
-On most current platforms these are all the same, but it is unwise to
+On current platforms these are the same, but it is unwise to
 rely on this.  Note that names containing underscores were not legal in
 Fortran 77, and are not portably handled by the above macros.  (Also,
 all Fortran names for use by @R{} are lower case, but this is not
