@@ -566,11 +566,11 @@ attribute_hidden SEXP do_inclusion_probs(SEXP call, SEXP op, SEXP args, SEXP rho
 	SEXP a, n;
     checkArity(op, args);
 	a = CAR(args);
-    n = CDR(args);
+    n = CADR(args);
     int i, l, l1;
     double sum_a = 0.0;
     int len = length(a);
-    double n_val = asReal(n);
+    double n_val = REAL(n)[0];
     double* a_ptr = REAL(a);
     SEXP pik1;
     PROTECT(pik1 = allocVector(REALSXP, len));
