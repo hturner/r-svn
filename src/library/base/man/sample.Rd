@@ -26,6 +26,8 @@ sample(x, size, replace = FALSE, prob = NULL,
 sample.int(n, size = n, replace = FALSE, prob = NULL,
            prob_method = c("sequential", "marginal", "poisson"),
            useHash = (n > 1e+07 && !replace && is.null(prob) && size <= n/2))
+
+sample.pps(n, size, prob, tolerance = sqrt(.Machine$double.eps))
 }
 \arguments{
   \item{x}{either a vector of one or more elements from which to choose,
@@ -34,7 +36,7 @@ sample.int(n, size = n, replace = FALSE, prob = NULL,
     \sQuote{Details.}}
   \item{size}{a non-negative integer giving the number of items to choose.  The
     default is \code{n} except for unequal-probability sampling without
-    replacement, where it should be \code{sum(prob)}}.
+    replacement, where it should be \code{sum(prob)}.}
   \item{replace}{should sampling be with replacement?}
   \item{prob}{a vector of probability weights for obtaining the elements
     of the vector being sampled.}
@@ -45,6 +47,8 @@ sample.int(n, size = n, replace = FALSE, prob = NULL,
       FALSE}, \code{prob = NULL}, and \code{size <= n/2}, and really
     should be used for large \code{n}, as \code{useHash = FALSE} will use
     memory proportional to \code{n}.}
+  \item{tolerance}{tolerance used in checks on \code{prob} when 
+    \code{prob_method = "marginal"}.  Passed to \code{\link{all.equal}}.}
 }
 \details{
   If \code{x} has length 1, is numeric (in the sense of
