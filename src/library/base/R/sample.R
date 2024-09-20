@@ -28,35 +28,33 @@ sample <- function(x, size, replace = FALSE, prob = NULL,
     }
 }
 
-sample.int  <- function(n, size = n, replace = FALSE, prob = NULL,
-                        prob_method = c("sequential", "marginal", "poisson"),
-                        useHash = (n > 1e7 && !replace && is.null(prob) && size <= n/2))
+sample.int <- function(n, size = n, replace = FALSE, prob = NULL,
+  prob_method = c("sequential", "marginal", "poisson"),
+  useHash = (n > 1e7 && !replace && is.null(prob) && size <= n/2))
 {
+  stopifnot(length(n) == 1L)
   if (replace || is.null(prob)) {
-    if (is.null(size)) {
-      size <- n
-    }
-  } else {
-    if (is.null(size))
-      size <- sum(prob)
+    size <- size %||% n
+    if (useHash) {
+      ## will work with size > n/2 but may be slow.
+      stopifnot(is.null(prob), !replace)
+      return(.Internal(sample2(n, size)))
+    } 
+    return(.Internal(sample(n, size, replace, prob)))
   }
-  stopifnot(length(n) == 1L) # rest of the checks are at C level.
-  if (useHash) {
-    ## will work with size > n/2 but may be slow.
-    stopifnot(is.null(prob), !replace)
-    .Internal(sample2(n, size))
+  # sampling without replacement and with specified probability weights
+  size <- size %||% sum(prob)
+  if (length(prob) != n) {
+    stop("incorrect number of probabilities")
   }
-  else if (!is.null(prob) && !replace) {
-    if (length(prob) != n)
-      stop("incorrect number of probabilities")
-    prob_method <- match.arg(prob_method)
-    switch(prob_method,
-           sequential = .Internal(sample(n, size, replace, prob)),
-           marginal = sample.pps(n, size, prob),
-           poisson = sample(seq.int(1, n)[runif(n) <= prob * size/sum(prob)]))
-  } else {
-    .Internal(sample(n, size, replace, prob))
-  }
+  prob_method <- match.arg(prob_method)
+  switch(
+    prob_method,
+    sequential = .Internal(sample(n, size, replace, prob)),
+    marginal = sample.pps(n, size, prob),
+    # using `sample()` to permute selected items 
+    poisson = sample(which(runif(n) <= prob/sum(prob) * size))
+  )
 }
 
 inclusion_probs <- function(a, n) {
