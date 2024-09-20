@@ -57,34 +57,34 @@ sample.int <- function(n, size = n, replace = FALSE, prob = NULL,
   )
 }
 
-inclusion_probs <- function(a, n) {
-  storage.mode(a) <- "numeric"
+inclusion_probs <- function(a, size) {
+  a <- as.double(a)
+  size <- as.integer(round(size))
   b <- a < 0
   if (any(b)) {
     warning("there are ", sum(b), " negative value(s) shifted to zero")
     a[b] <- 0
   }
-  # .Call(C_inclusion_probs, a, n)
-  .Internal(inclusion_probs(a, n))
+  .Internal(inclusion_probs(a, size))
 }
 
-up_brewer <- function(pik, eps = sqrt(.Machine$double.eps)) {
-  if (any(is.na(pik)))
-    stop("there are missing values in the pik vector")
-  storage.mode(pik) <- storage.mode(eps) <- "numeric"
-  # r <- .Call(C_up_brewer, pik, eps)
-  r <- .Internal(up_brewer(pik, eps))
-  r
+up_brewer <- function(pi_k, eps = sqrt(.Machine$double.eps)) {
+  if (anyNA(pi_k))
+    stop("there are missing values in the pi_k vector")
+  pi_k <- as.double(pi_k)
+  eps <- as.double(eps)
+  .Internal(up_brewer(pi_k, eps))
 }
 
 sample.pps <- function(n, size, prob, tolerance = sqrt(.Machine$double.eps)) {
-  s <- sum(prob)
-  sums_to_one <- isTRUE(all.equal(s, 1, tolerance = tolerance))
-  sums_to_int <- isTRUE(all.equal(s, round(s), tolerance = tolerance))
+  sum_prob <- sum(prob)
+  sums_to_one <- isTRUE(all.equal(sum_prob, 1, tolerance = tolerance))
+  sums_to_int <- 
+    isTRUE(all.equal(sum_prob, round(sum_prob), tolerance = tolerance))
   if (is.null(size)) {
     if(!sums_to_int)
       stop("sum(prob) must be an integer")
-    size <- round(s)
+    size <- round(sum_prob)
   } else {
     size_is_sum <- isTRUE(all.equal(size, sum(prob), tolerance = tolerance))
     size_is_int <- isTRUE(all.equal(size, round(size), tolerance = tolerance))
@@ -95,7 +95,7 @@ sample.pps <- function(n, size, prob, tolerance = sqrt(.Machine$double.eps)) {
       prob <- inclusion_probs(prob * size, size)
     } else if (sums_to_int && !size_is_sum) {
       warning("sum(prob) is not equal to size or 1, rescaling")
-      prob <- inclusion_probs(prob * size/s, size)
+      prob <- inclusion_probs(prob/sum_prob * size, size)
     }
   }
   up_brewer(prob)

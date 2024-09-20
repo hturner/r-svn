@@ -555,26 +555,26 @@ attribute_hidden SEXP do_sample(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 /* inclusion_probs - computing inclusion probabilities
-   .Internal(inclusion_probs(a, n))
+   .Internal(inclusion_probs(a, size))
 */
 
 // #include <R.h>
 // #include <Rinternals.h>
-// SEXP do_inclusion_probs(SEXP a, SEXP n) {
+// SEXP do_inclusion_probs(SEXP a, SEXP size) {
 attribute_hidden SEXP do_inclusion_probs(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP a, n;
+	SEXP a, size;
     checkArity(op, args);
 	a = CAR(args);
-    n = CADR(args);
+    size = CADR(args);
     int i, l, l1;
     double sum_a = 0.0;
     int len = length(a);
-    double n_val = REAL(n)[0];
+    int size_val = INTEGER(size)[0];
     double* a_ptr = REAL(a);
-    SEXP pik1;
-    PROTECT(pik1 = allocVector(REALSXP, len));
-    double* pik1_ptr = REAL(pik1);
+    SEXP pi_k;
+    PROTECT(pi_k = allocVector(REALSXP, len));
+    double* pi_k_ptr = REAL(pi_k);
     // Calculate sum of a and correct negative values
     for (i = 0; i < len; i++) {
         if (a_ptr[i] < 0) {
@@ -582,14 +582,14 @@ attribute_hidden SEXP do_inclusion_probs(SEXP call, SEXP op, SEXP args, SEXP rho
         }
         sum_a += a_ptr[i];
     }
-    // Initialize pik1
+    // Initialize pi_k
     for (i = 0; i < len; i++) {
-        pik1_ptr[i] = (sum_a == 0) ? 0 : n_val * a_ptr[i] / sum_a;
+        pi_k_ptr[i] = (sum_a == 0) ? 0 : size_val * a_ptr[i] / sum_a;
     }
     // Count and adjust inclusion probabilities greater than or equal to 1
     l = 0;
     for (i = 0; i < len; i++) {
-        if (pik1_ptr[i] >= 1) {
+        if (pi_k_ptr[i] >= 1) {
             l++;
         }
     }
@@ -598,30 +598,32 @@ attribute_hidden SEXP do_inclusion_probs(SEXP call, SEXP op, SEXP args, SEXP rho
         while (l != l1) {
             double temp_sum = 0;
             for (i = 0; i < len; i++) {
-                if (pik1_ptr[i] < 1) {
-                    temp_sum += pik1_ptr[i];
+                if (pi_k_ptr[i] < 1) {
+                    temp_sum += pi_k_ptr[i];
                 }
             }
             for (i = 0; i < len; i++) {
-                pik1_ptr[i] = (pik1_ptr[i] < 1) ? (n_val - l) * (pik1_ptr[i] / temp_sum) : 1;
+                pi_k_ptr[i] = (pi_k_ptr[i] < 1) 
+                    ? (size_val - l) * (pi_k_ptr[i] / temp_sum) 
+                    : 1;
             }
 
             l1 = l;
             l = 0;
             for (i = 0; i < len; i++) {
-                if (pik1_ptr[i] >= 1) {
+                if (pi_k_ptr[i] >= 1) {
                     l++;
                 }
             }
         }
     }
     UNPROTECT(1);
-    return pik1;
+    return pi_k;
 }
 
 /* up_brewer - sampling using Brewer's method to select a sample of units 
    under unequal probability sampling without replacement
-   .Internal(up_brewer(pik, eps))
+   .Internal(up_brewer(pi_k, eps))
 */
 
 // #include <R.h>
@@ -630,18 +632,18 @@ attribute_hidden SEXP do_inclusion_probs(SEXP call, SEXP op, SEXP args, SEXP rho
 #include <string.h>
 #include <stdlib.h>
 
-// SEXP do_up_brewer(SEXP pik, SEXP eps) {
+// SEXP do_up_brewer(SEXP pi_k, SEXP eps) {
     // Extract data from SEXP arguments
 attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP pik, eps;
+	SEXP pi_k, eps;
     checkArity(op, args);
-	pik = CAR(args);
+	pi_k = CAR(args);
     eps = CADR(args);
     int i, l, l1;
-    double *pik_ptr = REAL(pik);
+    double *pi_k_ptr = REAL(pi_k);
     double epsilon = REAL(eps)[0];
-    int N_val = LENGTH(pik);
+    int N_val = LENGTH(pi_k);
 
     // Initialize variables
     double size = 0.0;
@@ -656,32 +658,32 @@ attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
     // Random seed
     GetRNGstate();
 
-    // Count and allocate space for pik values between eps and 1 - eps
+    // Count and allocate space for pi_k values between eps and 1 - eps
     int count = 0;
     for (int k = 0; k < N_val; k++) {
-        if (pik_ptr[k] > epsilon && pik_ptr[k] < 1 - epsilon) {
+        if (pi_k_ptr[k] > epsilon && pi_k_ptr[k] < 1 - epsilon) {
             count++;
         }
     }
 
-    double *filtered_pik = malloc(count * sizeof(double));
+    double *filtered_pi_k = malloc(count * sizeof(double));
     int *original_idx = malloc(count * sizeof(int));
     int *sb = calloc(count, sizeof(int));
     double *p = malloc(count * sizeof(double));
     int filtered_idx = 0;
 
-    if (filtered_pik == NULL || original_idx == NULL || sb == NULL || p == NULL) {
+    if (filtered_pi_k == NULL || original_idx == NULL || sb == NULL || p == NULL) {
         error("Memory allocation failed");
     }
 
-    /* Pre-loop to handle pik >= 1 - eps and pik <= eps, and populate filtered_pik */
+    /* Pre-loop to handle pi_k >= 1 - eps and pi_k <= eps, and populate filtered_pi_k */
     for (int k = 0; k < N_val; k++) {
-        if (pik_ptr[k] >= 1 - epsilon) {
+        if (pi_k_ptr[k] >= 1 - epsilon) {
             ans_ptr[ans_idx++] = k + 1;
-        } else if (pik_ptr[k] > epsilon) {
-            filtered_pik[filtered_idx] = pik_ptr[k];
+        } else if (pi_k_ptr[k] > epsilon) {
+            filtered_pi_k[filtered_idx] = pi_k_ptr[k];
             original_idx[filtered_idx] = k;
-            size += pik_ptr[k];
+            size += pi_k_ptr[k];
             filtered_idx++;
         }
     }
@@ -695,7 +697,7 @@ attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
 	double n_minus_i_plus_1 = n - i + 1;
 
         for (int k = 0; k < count; k++) {
-            a += filtered_pik[k] * sb[k];
+            a += filtered_pi_k[k] * sb[k];
         }
 
         /* Reduce repeated calculations */
@@ -703,7 +705,7 @@ attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
 
         /* Calculate p */
         for (int k = 0; k < count; k++) {
-            p[k] = ((1 - sb[k]) * filtered_pik[k] * (n_minus_a - filtered_pik[k])) / (n_minus_a - filtered_pik[k] * n_minus_i_plus_1);
+            p[k] = ((1 - sb[k]) * filtered_pi_k[k] * (n_minus_a - filtered_pi_k[k])) / (n_minus_a - filtered_pi_k[k] * n_minus_i_plus_1);
             p_sum += p[k];
         }
 
@@ -734,7 +736,7 @@ attribute_hidden SEXP do_up_brewer(SEXP call, SEXP op, SEXP args, SEXP rho)
     memcpy(INTEGER(ans_resized), ans_ptr, ans_idx * sizeof(int));
 
     /* Free the dynamically allocated memory */
-    free(filtered_pik);
+    free(filtered_pi_k);
     free(original_idx);
     free(sb);
     free(p);
